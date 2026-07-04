@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SignAI Studio - Bidirectional Sign Language Translator{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-badge">
+        <i class="fa-solid fa-sparkles"></i> 100% Web-Native Real-Time AI Engine
+    </div>
+    <h1 class="hero-title">
+        Bridging Voices & Gestures with <span class="gradient-text">Next-Gen AI</span>
+    </h1>
+    <p class="hero-subtitle">
+        An advanced, bidirectional Indian Sign Language (ISL) translator. Convert spoken voice into real-time sign language animations, or use your webcam to translate physical hand gestures into spoken speech instantly.
+    </p>
+    <div class="hero-actions">
+        <a href="{% url 'studio' %}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+            <i class="fa-solid fa-play"></i> Launch AI Studio
+        </a>
+        <a href="{% url 'dictionary' %}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+            <i class="fa-solid fa-book-open"></i> Explore Dictionary
+        </a>
+    </div>
+</section>
+
+<div class="grid-3">
+    <div class="card">
+        <div class="card-icon"><i class="fa-solid fa-microphone-lines"></i></div>
+        <h3 class="card-title">Voice to Sign Language</h3>
+        <p class="card-desc">
+            Speak naturally into your microphone. Our real-time speech engine transcribes your voice with zero latency and dynamically animates corresponding ISL phrase GIFs or letter-by-letter finger spelling.
+        </p>
+        <a href="{% url 'studio' %}" style="font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem;">Try Voice -> Sign <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="card">
+        <div class="card-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-secondary);"><i class="fa-solid fa-camera"></i></div>
+        <h3 class="card-title">Webcam Sign to Speech</h3>
+        <p class="card-desc">
+            Turn on your camera and sign! Powered by MediaPipe 21-point hand tracking and a custom TensorFlow Lite Neural Network, our studio recognizes gestures and speaks them aloud via speech synthesis.
+        </p>
+        <a href="{% url 'studio' %}" style="font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent-secondary);">Try Sign -> Voice <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="card">
+        <div class="card-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success);"><i class="fa-solid fa-bolt"></i></div>
+        <h3 class="card-title">In-Browser Architecture</h3>
+        <p class="card-desc">
+            No external desktop pop-ups required! Experience ultra-fast, privacy-first computer vision and audio processing executing right inside your browser window with seamless Django backend logging.
+        </p>
+        <a href="{% url 'about' %}" style="font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--success);">See Tech Stack <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 4rem; text-align: center; background: linear-gradient(135deg, rgba(30, 27, 75, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%); border-color: rgba(139, 92, 246, 0.3);">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">Why This Project Stands Out</h2>
+    <p style="color: var(--text-secondary); max-width: 800px; margin: 0 auto 2rem; line-height: 1.6;">
+        Built for performance and scalability, SignAI Studio integrates full-stack Django ORM persistence with cutting-edge browser-based MediaPipe computer vision. Unlike legacy prototypes that freeze servers with local GUI windows, our architecture runs reliably on modern web standards.
+    </p>
+    <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
+        <span class="hero-badge" style="margin: 0;"><i class="fa-brands fa-python"></i> Django 4+ ORM</span>
+        <span class="hero-badge" style="margin: 0; background: rgba(6, 182, 212, 0.15); color: #67e8f9; border-color: rgba(6, 182, 212, 0.3);"><i class="fa-solid fa-hand"></i> MediaPipe Hands</span>
+        <span class="hero-badge" style="margin: 0; background: rgba(236, 72, 153, 0.15); color: #f472b6; border-color: rgba(236, 72, 153, 0.3);"><i class="fa-solid fa-brain"></i> TensorFlow Lite</span>
+        <span class="hero-badge" style="margin: 0; background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-volume-high"></i> Web Speech API</span>
+    </div>
+</div>
+{% endblock %}

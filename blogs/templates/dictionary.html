@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ISL Dictionary & Explorer - SignAI Studio{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 2.5rem;">
+    <span class="hero-badge"><i class="fa-solid fa-book-bookmark"></i> Indian Sign Language Library</span>
+    <h1 style="font-size: 2.8rem; margin-top: 0.5rem;">Visual <span class="gradient-text">Sign Dictionary</span></h1>
+    <p style="color: var(--text-secondary); max-width: 650px; margin: 0.5rem auto 0;">
+        Explore our curated database of Indian Sign Language phrase animations and finger-spelling alphabet cards. Search any word or gesture below.
+    </p>
+
+    <!-- Search Bar -->
+    <div style="max-width: 500px; margin: 2rem auto 0; position: relative;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem;"></i>
+        <input type="text" id="dict-search" class="form-input" style="padding-left: 3rem; border-radius: 999px; background: rgba(26, 35, 58, 0.8); font-size: 1rem; border-color: rgba(139, 92, 246, 0.4);" placeholder="Search sign words, phrases or letters...">
+    </div>
+
+    <!-- Category Tabs -->
+    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+        <button class="btn btn-primary" id="tab-gifs" style="border-radius: 999px; padding: 0.5rem 1.5rem;">
+            <i class="fa-solid fa-film"></i> Phrases & Sentences ({{ gifs|length }})
+        </button>
+        <button class="btn btn-secondary" id="tab-letters" style="border-radius: 999px; padding: 0.5rem 1.5rem;">
+            <i class="fa-solid fa-font"></i> Alphabet ({{ letters|length }})
+        </button>
+    </div>
+</div>
+
+<!-- SECTION 1: GIF PHRASES -->
+<div id="section-gifs">
+    <h2 style="font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        Common Words & Phrases
+    </h2>
+    <div class="dict-grid" id="grid-gifs">
+        {% for gif in gifs %}
+            <div class="dict-item gif-item" data-name="{{ gif }}" onclick="openModal('{{ gif }}', '/static/ISL_Gifs/{{ gif }}.gif', 'phrase')">
+                <img src="/static/ISL_Gifs/{{ gif }}.gif" class="dict-thumb" alt="{{ gif }}" loading="lazy">
+                <div class="dict-name">{{ gif }}</div>
+            </div>
+        {% empty %}
+            <p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">No GIF files found in ISL_Gifs directory.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- SECTION 2: ALPHABET LETTERS -->
+<div id="section-letters" style="display: none;">
+    <h2 style="font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        Finger-Spelling Alphabet (A - Z)
+    </h2>
+    <div class="dict-grid" id="grid-letters">
+        {% for ch in letters %}
+            <div class="dict-item letter-item" data-name="Letter {{ ch|upper }}" onclick="openModal('Letter {{ ch|upper }}', '/static/letters/{{ ch }}.jpg', 'letter')">
+                <img src="/static/letters/{{ ch }}.jpg" class="dict-thumb" alt="Letter {{ ch }}" loading="lazy">
+                <div class="dict-name">Letter [ {{ ch|upper }} ]</div>
+            </div>
+        {% empty %}
+            <p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">No alphabet images found in letters directory.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- MODAL PREVIEW -->
+<div id="preview-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 2000; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div class="card" style="max-width: 500px; width: 100%; position: relative; text-align: center; border-color: var(--accent-primary);">
+        <button onclick="closeModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <span class="hero-badge" id="modal-badge" style="margin: 0 auto 1rem;">ISL Animation</span>
+        <h3 id="modal-title" style="font-size: 1.8rem; margin-bottom: 1rem; text-transform: capitalize;">---</h3>
+        <div style="background: #000; border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; min-height: 250px;">
+            <img id="modal-img" style="max-width: 100%; max-height: 350px; object-fit: contain; border-radius: var(--radius-sm);" alt="Sign Preview">
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'studio' %}" class="btn btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-play"></i> Practice in AI Studio
+            </a>
+            <button onclick="closeModal()" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const tabGifs = document.getElementById('tab-gifs');
+const tabLetters = document.getElementById('tab-letters');
+const secGifs = document.getElementById('section-gifs');
+const secLetters = document.getElementById('section-letters');
+const searchInput = document.getElementById('dict-search');
+
+tabGifs.addEventListener('click', () => {
+    tabGifs.className = 'btn btn-primary';
+    tabLetters.className = 'btn btn-secondary';
+    secGifs.style.display = 'block';
+    secLetters.style.display = 'none';
+    filterGrid();
+});
+
+tabLetters.addEventListener('click', () => {
+    tabLetters.className = 'btn btn-primary';
+    tabGifs.className = 'btn btn-secondary';
+    secLetters.style.display = 'block';
+    secGifs.style.display = 'none';
+    filterGrid();
+});
+
+searchInput.addEventListener('input', filterGrid);
+
+function filterGrid() {
+    const query = searchInput.value.toLowerCase().trim();
+    const activeItems = secGifs.style.display !== 'none' 
+        ? document.querySelectorAll('.gif-item') 
+        : document.querySelectorAll('.letter-item');
+
+    activeItems.forEach(item => {
+        const name = item.getAttribute('data-name').toLowerCase();
+        if (name.includes(query)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// Modal logic
+const modal = document.getElementById('preview-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalImg = document.getElementById('modal-img');
+const modalBadge = document.getElementById('modal-badge');
+
+function openModal(title, src, type) {
+    modalTitle.textContent = title;
+    modalImg.src = src;
+    modalBadge.textContent = type === 'phrase' ? 'ISL Phrase Animation' : 'Alphabet Finger-Spelling';
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    modal.style.display = 'none';
+    modalImg.src = '';
+}
+
+// Close on escape or clicking backdrop
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+</script>
+{% endblock %}

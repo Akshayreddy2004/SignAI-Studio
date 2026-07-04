@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Audio & Sign AI Studio{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{% url 'homepage' %}" class="nav-brand">
+            <i class="fa-solid fa-hands-asl-interpreting" style="color: #8b5cf6;"></i>
+            <span>SignAI Studio</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'homepage' %}" class="nav-link {% if request.resolver_match.url_name == 'homepage' %}active{% endif %}">Home</a></li>
+            <li><a href="{% url 'studio' %}" class="nav-link {% if request.resolver_match.url_name == 'studio' %}active{% endif %}">AI Studio</a></li>
+            <li><a href="{% url 'dictionary' %}" class="nav-link {% if request.resolver_match.url_name == 'dictionary' %}active{% endif %}">Dictionary</a></li>
+            <li><a href="{% url 'about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a></li>
+            <li><a href="{% url 'contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'userhome' %}" class="nav-link {% if request.resolver_match.url_name == 'userhome' %}active{% endif %}">Dashboard</a></li>
+                <li><a href="{% url 'logout' %}" class="btn btn-secondary" style="padding: 0.4rem 0.9rem;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}" class="btn btn-secondary" style="padding: 0.4rem 0.9rem;"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+                <li><a href="{% url 'registration' %}" class="btn btn-primary" style="padding: 0.4rem 0.9rem;"><i class="fa-solid fa-user-plus"></i> Sign Up</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 SignAI Studio. Powered by Google MediaPipe, TensorFlow Lite & Django.</p>
+        <p style="font-size: 0.8rem; margin-top: 0.4rem; color: #475569;">Bidirectional Automatic Indian Sign Language Translator</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

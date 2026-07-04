@@ -1,0 +1,13 @@
+https://github.com/satyam9090/Automatic-Indian-Sign-Language-Translator-ISL
+
+pip install sign-language-translator
+pip install pyaudio
+pip install speechrecognition
+pip install pyttsx3
+pip install easygui
+
+copy follwoing files from the location  C:\Program Files\Python39\Lib\site-packages\pywin32_system32
+            pythoncom39.dll
+            pywintypes39.dll
+and, paste them into the location C:\Program Files\Python39\Lib\site-packages\win32\lib
+

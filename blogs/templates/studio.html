@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Studio - Live Bidirectional Sign Language Translator{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 2rem;">
+    <span class="hero-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Web-Native Real-Time Engine</span>
+    <h1 style="font-size: 2.8rem; margin-top: 0.5rem;">Interactive <span class="gradient-text">AI Studio</span></h1>
+    <p style="color: var(--text-secondary); max-width: 650px; margin: 0.5rem auto 0;">
+        Experience zero-latency bidirectional translation running entirely inside your web browser. Speak into your microphone or sign to your webcam.
+    </p>
+</div>
+
+<div class="studio-container">
+    <!-- PANEL 1: AUDIO TO SIGN LANGUAGE -->
+    <div class="studio-panel">
+        <div class="status-badge" id="audio-status-badge">
+            <span class="status-dot" id="audio-dot"></span>
+            <span id="audio-status-text">Mic Idle</span>
+        </div>
+
+        <div class="card-icon" style="margin-top: 1rem;"><i class="fa-solid fa-ear-listen"></i></div>
+        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Voice to Sign Language</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Click the microphone below and speak a phrase (e.g., <em>"hello"</em>, <em>"good morning"</em>, <em>"what is your name"</em>) or spell any word.
+        </p>
+
+        <button class="mic-btn" id="mic-btn" title="Click to start listening">
+            <i class="fa-solid fa-microphone" id="mic-icon"></i>
+        </button>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: -0.5rem; margin-bottom: 1.5rem;" id="mic-hint">Click icon to speak</p>
+
+        <!-- Animation Display Area -->
+        <div class="video-box" style="background: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; flex-direction: column;" id="sign-display-area">
+            <i class="fa-solid fa-hands-asl-interpreting" style="font-size: 4rem; color: rgba(255,255,255,0.1); margin-bottom: 1rem;" id="placeholder-icon"></i>
+            <p style="color: var(--text-muted); font-size: 0.9rem;" id="placeholder-text">Sign animation will appear here</p>
+            <img id="gif-player" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--radius-sm);" alt="Sign Animation">
+        </div>
+
+        <div class="output-display">
+            <span class="output-label">Transcribed Speech</span>
+            <span class="output-text" id="transcribed-text">---</span>
+        </div>
+    </div>
+
+    <!-- PANEL 2: SIGN LANGUAGE TO AUDIO -->
+    <div class="studio-panel">
+        <div class="status-badge" id="cam-status-badge">
+            <span class="status-dot" id="cam-dot"></span>
+            <span id="cam-status-text">Camera Off</span>
+        </div>
+
+        <div class="card-icon" style="margin-top: 1rem; background: rgba(6, 182, 212, 0.15); color: var(--accent-secondary);"><i class="fa-solid fa-hand-sparkles"></i></div>
+        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Webcam Sign to Voice</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Enable your webcam and hold up a hand gesture (e.g., <em>Open Hand</em>, <em>Thumb Up</em>, <em>Peace</em>, <em>OK</em>). The AI will speak it aloud!
+        </p>
+
+        <div style="margin: 1rem 0;">
+            <button class="btn btn-primary" id="start-cam-btn" style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);">
+                <i class="fa-solid fa-video"></i> Start Camera
+            </button>
+            <button class="btn btn-secondary" id="stop-cam-btn" style="display: none;">
+                <i class="fa-solid fa-video-slash"></i> Stop Camera
+            </button>
+        </div>
+
+        <!-- Video & Canvas Overlay -->
+        <div class="video-box" id="webcam-box">
+            <video id="webcam-video" autoplay playsinline muted></video>
+            <canvas id="output-canvas"></canvas>
+            <div id="cam-placeholder" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background: rgba(15, 23, 42, 0.9); z-index: 5;">
+                <i class="fa-solid fa-camera" style="font-size: 3.5rem; color: rgba(255,255,255,0.1); margin-bottom: 0.75rem;"></i>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Click 'Start Camera' to enable hand tracking</p>
+            </div>
+        </div>
+
+        <div class="output-display" style="border-color: rgba(6, 182, 212, 0.3);">
+            <span class="output-label">Detected Gesture</span>
+            <span class="output-text" id="detected-gesture" style="color: #67e8f9;">No Hand Detected</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- MediaPipe CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<script>
+// Known ISL GIF Phrases in static/ISL_Gifs/
+const ISL_GIF_PHRASES = [
+    'address', 'ahemdabad', 'all', 'any questions', 'are you busy', 'are you angry', 'are you hungry', 'assam', 'august',
+    'banana', 'banaras', 'banglore', 'be careful', 'bridge', 'cat', 'christmas', 'church',
+    'dasara', 'december', 'did you finish homework', 'do you have money', 'do you want something to drink', 'do you watch TV', 'dont worry',
+    'flower is beautiful', 'good afternoon', 'good morning', 'good question', 'grapes', 'hello', 'hindu', 'hyderabad',
+    'i am a clerk', 'i am fine', 'i am sorry', 'i am thinking', 'i am tired', 'i go to a theatre', 'i like pink colour', 'i love to shop',
+    'job', 'july', 'june', 'karnataka', 'kerala', 'krishna', 'lets go for lunch', 'mango', 'may', 'mile', 'mumbai',
+    'nagpur', 'nice to meet you', 'open the door', 'pakistan', 'please call me later', 'please wait for sometime', 'police station', 'post office',
+    'pune', 'punjab', 'saturday', 'shall i help you', 'shall we go together tommorow', 'shop', 'sign language interpreter', 'sit down', 'stand up',
+    'take care', 'temple', 'there was traffic jam', 'thursday', 'toilet', 'tomato', 'tuesday', 'usa', 'village',
+    'wednesday', 'what are you doing', 'what is the problem', 'what is todays date', 'what is your father do', 'what is your mobile number', 'what is your name',
+    'whats up', 'where is the bathroom', 'where is police station', 'you are wrong'
+];
+
+// Helper to log translations to backend Django DB
+function logTranslationToDB(type, inputTxt, outputRes) {
+    fetch('/api/log_translation/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            translation_type: type,
+            input_text: inputTxt,
+            output_result: outputRes
+        })
+    }).catch(err => console.log('Log DB Error:', err));
+}
+
+/* ==========================================
+   PANEL 1: VOICE TO SIGN (Web Speech API)
+   ========================================== */
+const micBtn = document.getElementById('mic-btn');
+const micIcon = document.getElementById('mic-icon');
+const micHint = document.getElementById('mic-hint');
+const audioDot = document.getElementById('audio-dot');
+const audioStatusText = document.getElementById('audio-status-text');
+const transcribedText = document.getElementById('transcribed-text');
+const gifPlayer = document.getElementById('gif-player');
+const placeholderIcon = document.getElementById('placeholder-icon');
+const placeholderText = document.getElementById('placeholder-text');
+
+let isRecording = false;
+let spellingInterval = null;
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (!SpeechRecognition) {
+    micHint.textContent = "Speech API not supported in this browser (Use Chrome/Edge)";
+    micBtn.style.opacity = "0.5";
+    micBtn.disabled = true;
+} else {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-IN'; // Indian English
+
+    micBtn.addEventListener('click', () => {
+        if (!isRecording) {
+            try {
+                recognition.start();
+                isRecording = true;
+                micBtn.classList.add('recording');
+                micIcon.className = 'fa-solid fa-stop';
+                micHint.textContent = 'Listening... Speak now!';
+                audioDot.classList.add('active');
+                audioStatusText.textContent = 'Listening...';
+                if (spellingInterval) clearInterval(spellingInterval);
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            recognition.stop();
+        }
+    });
+
+    recognition.onend = () => {
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        micIcon.className = 'fa-solid fa-microphone';
+        micHint.textContent = 'Click icon to speak';
+        audioDot.classList.remove('active');
+        audioStatusText.textContent = 'Mic Idle';
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.trim().toLowerCase().replace(/[.,!?;:]/g, '');
+        transcribedText.textContent = `"${transcript}"`;
+        displaySignForPhrase(transcript);
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        transcribedText.textContent = 'Error listening: ' + event.error;
+    };
+}
+
+function displaySignForPhrase(phrase) {
+    placeholderIcon.style.display = 'none';
+    placeholderText.style.display = 'none';
+    if (spellingInterval) clearInterval(spellingInterval);
+
+    // Check exact GIF match
+    if (ISL_GIF_PHRASES.includes(phrase)) {
+        gifPlayer.style.display = 'block';
+        gifPlayer.src = `/static/ISL_Gifs/${phrase}.gif`;
+        logTranslationToDB('AUDIO_TO_SIGN', phrase, `Played GIF: ${phrase}.gif`);
+    } else {
+        // Fallback to letter finger-spelling
+        const cleanChars = phrase.replace(/[^a-z]/g, '').split('');
+        if (cleanChars.length === 0) return;
+
+        gifPlayer.style.display = 'block';
+        let idx = 0;
+        
+        function showNextLetter() {
+            const ch = cleanChars[idx];
+            gifPlayer.src = `/static/letters/${ch}.jpg`;
+            transcribedText.textContent = `"${phrase}" -> Spelling: [ ${ch.toUpperCase()} ] (${idx + 1}/${cleanChars.length})`;
+            idx++;
+            if (idx >= cleanChars.length) idx = 0;
+        }
+
+        showNextLetter();
+        spellingInterval = setInterval(showNextLetter, 1200);
+        logTranslationToDB('AUDIO_TO_SIGN', phrase, `Finger-spelled ${cleanChars.length} characters`);
+    }
+}
+
+
+/* ==========================================
+   PANEL 2: WEBCAM SIGN TO VOICE (MediaPipe)
+   ========================================== */
+const startCamBtn = document.getElementById('start-cam-btn');
+const stopCamBtn = document.getElementById('stop-cam-btn');
+const webcamVideo = document.getElementById('webcam-video');
+const outputCanvas = document.getElementById('output-canvas');
+const camPlaceholder = document.getElementById('cam-placeholder');
+const camDot = document.getElementById('cam-dot');
+const camStatusText = document.getElementById('cam-status-text');
+const detectedGestureSpan = document.getElementById('detected-gesture');
+
+const canvasCtx = outputCanvas.getContext('2d');
+let cameraInstance = null;
+let lastSpokenGesture = "";
+let stableGestureCount = 0;
+let currentCandidate = "";
+
+const hands = new Hands({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+
+hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
+});
+
+hands.onResults(onHandResults);
+
+function startCamera() {
+    camPlaceholder.style.display = 'none';
+    startCamBtn.style.display = 'none';
+    stopCamBtn.style.display = 'inline-flex';
+    camDot.classList.add('active');
+    camStatusText.textContent = 'Tracking Hand...';
+
+    cameraInstance = new Camera(webcamVideo, {
+        onFrame: async () => {
+            await hands.send({ image: webcamVideo });
+        },
+        width: 640,
+        height: 480
+    });
+    cameraInstance.start();
+}
+
+function stopCamera() {
+    if (cameraInstance) {
+        cameraInstance.stop();
+        cameraInstance = null;
+    }
+    canvasCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+    camPlaceholder.style.display = 'flex';
+    startCamBtn.style.display = 'inline-flex';
+    stopCamBtn.style.display = 'none';
+    camDot.classList.remove('active');
+    camStatusText.textContent = 'Camera Off';
+    detectedGestureSpan.textContent = 'No Hand Detected';
+}
+
+startCamBtn.addEventListener('click', startCamera);
+stopCamBtn.addEventListener('click', stopCamera);
+
+function onHandResults(results) {
+    outputCanvas.width = webcamVideo.videoWidth || 640;
+    outputCanvas.height = webcamVideo.videoHeight || 480;
+    canvasCtx.save();
+    canvasCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
+
+        // Draw green MediaPipe connections
+        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 3 });
+        drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 4 });
+
+        // Classify Gesture using relative finger geometry
+        const gesture = classifyHandGesture(landmarks);
+        detectedGestureSpan.textContent = gesture;
+
+        // Speech synthesis stabilization (speak when held steady for ~25 frames)
+        if (gesture !== "Unknown Sign" && gesture !== "No Hand Detected") {
+            if (gesture === currentCandidate) {
+                stableGestureCount++;
+                if (stableGestureCount === 20 && gesture !== lastSpokenGesture) {
+                    speakGesture(gesture);
+                    lastSpokenGesture = gesture;
+                }
+            } else {
+                currentCandidate = gesture;
+                stableGestureCount = 0;
+            }
+        } else {
+            stableGestureCount = 0;
+        }
+    } else {
+        detectedGestureSpan.textContent = 'No Hand Detected';
+        stableGestureCount = 0;
+    }
+    canvasCtx.restore();
+}
+
+function speakGesture(label) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(label);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+        logTranslationToDB('SIGN_TO_AUDIO', `Detected sign: ${label}`, `Spoken aloud: "${label}"`);
+    }
+}
+
+// Geometric Finger Extension Classifier
+function classifyHandGesture(lm) {
+    // lm is array of 21 points with x, y, z
+    const isExtended = (tipIdx, pipIdx) => lm[tipIdx].y < lm[pipIdx].y;
+    
+    const indexExt = isExtended(8, 6);
+    const middleExt = isExtended(12, 10);
+    const ringExt = isExtended(16, 14);
+    const pinkyExt = isExtended(20, 18);
+    
+    // Thumb check (x distance relative to palm depending on hand orientation)
+    const thumbExt = Math.abs(lm[4].x - lm[9].x) > 0.12;
+
+    const count = [indexExt, middleExt, ringExt, pinkyExt].filter(Boolean).length;
+
+    if (count === 4 && thumbExt) return "Open Hand (Hello / Stop)";
+    if (count === 0 && !thumbExt) return "Fist / Closed Hand";
+    if (count === 0 && thumbExt && lm[4].y < lm[3].y) return "Thumb Up (Good / OK)";
+    if (indexExt && middleExt && !ringExt && !pinkyExt) return "Peace / Victory";
+    if (indexExt && !middleExt && !ringExt && !pinkyExt) return "Pointing Index (You / There)";
+    if (!indexExt && middleExt && ringExt && pinkyExt && thumbExt) return "OK Gesture";
+
+    return "Unknown Sign";
+}
+</script>
+{% endblock %}

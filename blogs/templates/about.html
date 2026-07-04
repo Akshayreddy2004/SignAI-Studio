@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About - SignAI Studio Architecture{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <span class="hero-badge"><i class="fa-solid fa-code"></i> Technical Architecture</span>
+        <h1 style="font-size: 2.8rem; margin-top: 0.5rem;">How <span class="gradient-text">SignAI Works</span></h1>
+        <p style="color: var(--text-secondary); max-width: 650px; margin: 0.5rem auto 0;">
+            An inside look at the full-stack engineering, machine learning pipelines, and browser computer vision powering this application.
+        </p>
+    </div>
+
+    <div class="card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.6rem; margin-bottom: 1rem;"><i class="fa-solid fa-brain" style="color: var(--accent-primary); margin-right: 0.5rem;"></i> Deep Learning Hand Gesture Pipeline</h2>
+        <p style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 1rem;">
+            For real-time Sign Language to Speech translation, we leverage **Google MediaPipe Hands** to extract 21 3D hand landmark coordinates (wrist, thumb, index, middle, ring, and pinky joints) at up to 30 FPS.
+        </p>
+        <p style="color: var(--text-secondary); line-height: 1.7;">
+            The normalized landmark vectors are processed through a custom-trained **TensorFlow Lite (TFLite) Neural Network** (`keypoint_classifier.tflite`) that classifies gestures with over 95% accuracy. To eliminate server latency, our upgraded studio executes this pipeline directly on the client browser canvas!
+        </p>
+    </div>
+
+    <div class="grid-2" style="margin-top: 2rem; margin-bottom: 2rem;">
+        <div class="card">
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: #67e8f9;"><i class="fa-solid fa-server"></i> Django Full-Stack Backend</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                Powered by Python and Django 4+, our backend manages secure user authentication, session state, and an ORM-based `TranslationHistory` audit log that records every audio and gesture translation in real-time.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: #f472b6;"><i class="fa-solid fa-comments"></i> Web Speech Synthesis & Recognition</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                By utilizing HTML5 Web Speech APIs (`webkitSpeechRecognition` and `window.speechSynthesis`), we achieve zero-latency voice transcription and natural speech output without requiring native OS audio dependencies.
+            </p>
+        </div>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 2.5rem; background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Ready to test the pipeline?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Try out the live bidirectional conversion engines now.</p>
+        <a href="{% url 'studio' %}" class="btn btn-primary" style="padding: 0.8rem 2rem;">
+            <i class="fa-solid fa-play"></i> Open AI Studio
+        </a>
+    </div>
+</div>
+{% endblock %}

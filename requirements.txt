@@ -1,0 +1,10 @@
+# Core Django Web Backend
+django>=4.2,<7.0
+asgiref
+sqlparse
+gunicorn
+whitenoise
+
+# Image Processing & ML Math (For server-side helpers if needed)
+numpy
+pillow
