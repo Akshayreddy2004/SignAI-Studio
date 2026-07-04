@@ -1,1 +1,1 @@
-web: gunicorn Translator.wsgi:application
+web: python manage.py collectstatic --noinput && python manage.py migrate && gunicorn Translator.wsgi:application
